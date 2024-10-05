@@ -224,50 +224,47 @@
             });
         }
 
-     async   function add() {
+        async function add() {
             let PId = document.getElementById('PId').value;
             let PName = document.getElementById('PName').value;
             let PPrice = document.getElementById('PPrice').value;
             let PQty = document.getElementById('PQty').value;
-            let quantity = document.getElementById('PQuantity').value
+            let quantity = document.getElementById('PQuantity').value;
             let PTotalPrice = (parseFloat(PPrice) * parseFloat(PQty)).toFixed(2);
 
-             if(parseFloat(quantity)>parseFloat(PQty)) {
-                 if (PId.length === 0) {
-                     errorToast("Product ID Required");
-                 } else if (PName.length === 0) {
-                     errorToast("Product Name Required");
-                 } else if (PPrice.length === 0) {
-                     errorToast("Product Price Required");
-                 } else if (PQty.length === 0) {
-                      errorToast("Product Quantity Required");
-                 } else {
-                      let item = {
-                          product_name: PName,
-                          product_id: PId,
-                          qty: PQty,
-                          sale_price: PTotalPrice
-                         };
-                     InvoiceItemList.push(item);
-                     console.log(InvoiceItemList);
-                     $('#create-modal').modal('hide')
-                     ShowInvoiceItem();
-                 }
-             }else {
-              errorToast('Shortage of Product');
-             }
+            // Check if the product is already in the InvoiceItemList
+            let existingProduct = InvoiceItemList.find(item => item.product_id === PId);
+
+            if (existingProduct) {
+                errorToast("Product already added to the invoice");
+                return;
+            }
+
+            if (parseFloat(quantity) >= parseFloat(PQty)) {
+                if (PId.length === 0) {
+                    errorToast("Product ID Required");
+                } else if (PName.length === 0) {
+                    errorToast("Product Name Required");
+                } else if (PPrice.length === 0) {
+                    errorToast("Product Price Required");
+                } else if (PQty.length === 0) {
+                    errorToast("Product Quantity Required");
+                } else {
+                    let item = {
+                        product_name: PName,
+                        product_id: PId,
+                        qty: PQty,
+                        sale_price: PTotalPrice
+                    };
+                    InvoiceItemList.push(item);
+                    console.log(InvoiceItemList);
+                    $('#create-modal').modal('hide');
+                    ShowInvoiceItem();
+                }
+            } else {
+                errorToast('Shortage of Product');
+            }
         }
-
-
-       async function updateQuantity() {
-            let id = document.getElementById('PId').value;
-            showLoader();
-            let res=await axios.post("/product-by-id",{id:id});
-            hideLoader();
-
-        }
-
-
 
 
         function ShowInvoiceItem() {
@@ -362,6 +359,7 @@
                 let res=await axios.post("/invoice-create",Data)
                 hideLoader();
                 if(res.data===1){
+                    await updateProductQuantity();
                     window.location.href='/invoicePage'
                     successToast("Invoice Created");
                 }
@@ -369,6 +367,26 @@
                     errorToast("Something Went Wrong")
                 }
             }
+
+
+            async function updateProductQuantity() {
+                showLoader();
+                for (let item of InvoiceItemList) {
+                    let id = item.product_id;
+                    let qtySold = item.qty;
+
+                    let res = await axios.post('/update-product-quantity', {
+                        id: id,
+                        quantity_sold: qtySold
+                    });
+
+                    if (res.data !== 1) {
+                        errorToast("Failed to update product quantity for product ID: " + id);
+                    }
+                }
+                hideLoader();
+            }
+
 
         }
 

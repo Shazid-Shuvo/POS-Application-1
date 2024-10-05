@@ -61,15 +61,6 @@ class productController extends Controller
         return Product::where('id',$product_id)->where('user_id',$user_id)->first();
     }
 
-    function updateQuantity(Request $request){
-        $user_id=$request->header('id');
-        $product_id=$request->input('id');
-        return Product::where('id',$product_id)->where('user_id',$user_id)->
-            update([
-            'quantity'=>$request->input('quantity'),
-        ]);
-    }
-
     function productList(Request $request)
     {
         $user_id=$request->header('id');
@@ -119,4 +110,21 @@ class productController extends Controller
             ]);
         }
     }
+
+    public function updateProductQuantity(Request $request) {
+        $product = Product::find($request->id);
+        if ($product) {
+            $product->quantity -= $request->quantity_sold;
+
+            if ($product->quantity < 0) {
+                return response()->json(['status' => 'error', 'message' => 'Not enough stock available'], 400);
+            }
+
+            $product->save();
+            return response()->json(1);
+        }
+
+        return response()->json(['status' => 'error', 'message' => 'Product not found'], 404);
+    }
+
 }

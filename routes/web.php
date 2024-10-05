@@ -70,7 +70,7 @@ Route::post("/update-customer",[customerController::class,'customerUpdate'])->mi
 //product API
 
 
-Route::post("/update-product-quantity",[productController::class,'updateQuantity'])->middleware([tokenVerificationMiddleware::class]);
+Route::post("/update-product-quantity",[productController::class,'updateProductQuantity'])->middleware([tokenVerificationMiddleware::class]);
 Route::post("/product-by-id",[productController::class,'productByID'])->middleware([tokenVerificationMiddleware::class]);
 Route::post("/create-product",[productController::class,'createProduct'])->middleware([tokenVerificationMiddleware::class]);
 Route::get("/list-product",[productController::class,'productList'])->middleware([tokenVerificationMiddleware::class]);
